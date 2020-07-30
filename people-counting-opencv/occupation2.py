@@ -171,11 +171,6 @@ def thread_for_capturing_face():
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
         print("{} people entered in today".format(totalPeople))
-        cv2.imshow("Frame", frame)
-        key = cv2.waitKey(1) & 0xFF
-
-        if key == ord("q"):
-            break
 
         totalFrames += 1
         fps.update()
