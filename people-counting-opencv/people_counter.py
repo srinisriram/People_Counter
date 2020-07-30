@@ -51,11 +51,14 @@ def send_email(excelsheet):
 		server.sendmail(sender_email, receiver_email, msg.as_string())
 
 
-def send_number(send_number):
+def send_number(num):
+	print(num)
+	print(type(num))
 	with open('Total_People.txt', 'w') as f:
-		f.write('%d' % send_number)
-	os.system("sshpass -p 'Cheenu06!' scp Total_People.txt srinivassriram@192.168.4.74:/home/srinivassriram/people-counting-opencv")
+		f.write(str(num))
+	os.system("sshpass -p 'raspberry' scp Total_People.txt pi@192.168.6.158:/home/pi/People_Counter/people-counting-opencv/")
 
+send_number(0)
 prototxt = 'mobilenet_ssd/MobileNetSSD_deploy.prototxt'
 model = 'mobilenet_ssd/MobileNetSSD_deploy.caffemodel'
 
@@ -123,6 +126,11 @@ fps = FPS().start()
 
 # loop over frames from the video stream
 while True:
+	try:
+		f = open("Total_People.txt", 'r')
+		totalPeople = int(f.read())
+	except:
+		pass
 	# grab the next frame and handle if we are reading from either
 	# VideoCapture or VideoStream
 	frame = vs.read()
@@ -227,7 +235,7 @@ while True:
 	# draw a horizontal line in the center of the frame -- once an
 	# object crosses this line we will determine whether they were
 	# moving 'up' or 'down'
-	cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
+	#cv2.line(frame, (0, W // 2), (H, W // 2), (0, 255, 255), 2)
 
 	# use the centroid tracker to associate the (1) old object
 	# centroids with (2) the newly computed object centroids
@@ -259,20 +267,23 @@ while True:
 				# if the direction is negative (indicating the object
 				# is moving up) AND the centroid is above the center
 				# line, count the object
-				if direction < 0 and centroid[1] < H // 2:
+				if direction < 0 and centroid[1] < W // 2:
 					totalUp += 1
 					totalPeople += 1
+					print(type(totalPeople))
 					to.counted = True
 
 				# if the direction is positive (indicating the object
 				# is moving down) AND the centroid is below the
 				# center line, count the object
-				elif direction > 0 and centroid[1] > H // 2:
-					totalPeople +=1
+				elif direction > 0 and centroid[1] > W // 2:
+					totalPeople -=1
 					totalDown += 1
 					to.counted = True
 
 		send_number(totalPeople)
+		if totalPeople == 5:
+			print('sorry u cannot enter')
 		# store the trackable object in our dictionary
 		trackableObjects[objectID] = to
 
@@ -321,6 +332,8 @@ print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
 print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
 send_email('Total_People.txt')
+send_number(0)
+
 
 # check to see if we need to release the video writer pointer
 if writer is not None:
