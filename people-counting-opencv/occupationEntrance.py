@@ -195,9 +195,9 @@ def thread_for_zmq_for_receiving_face_detected_by_peer():
     while run_program:
         print("[INFO] Waiting to receive info...")
         #  Wait for next request from client
-        message = socket.recv()
+        message = socket.recv(1024).decode()
         print("Received request: %s" % str(message))
-        total_faces_detected_by_peer = int(str(message))
+        total_faces_detected_by_peer = int(message)
         if total_faces_detected_by_peer != total_faces_detected_locally:
             total_faces_detected_locally = total_faces_detected_by_peer
         else:
@@ -215,7 +215,7 @@ def thread_for_zmq_for_transmitting_face_detected_locally():
         if total_faces_detected_locally >= curr_count:
             print("[INFO] Sending Info...")
             #  Send the count
-            socket.send(b(str(total_faces_detected_locally)))
+            socket.send((str(total_faces_detected_locally)).encode())
             curr_count = total_faces_detected_locally
 
 
