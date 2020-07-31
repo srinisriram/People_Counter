@@ -12,6 +12,7 @@ from pyimagesearch.trackableobject import TrackableObject
 peer_ip_address = "tcp://192.168.6.158:5555"
 context = zmq.Context()
 socket = context.socket(zmq.REP)
+print("[INFO] Connecting...")
 socket.connect(peer_ip_address)
 
 total_faces_detected_locally = 0
@@ -48,6 +49,7 @@ totalPeople = 0
 
 
 def thread_for_capturing_face():
+    print("[INFO] Running Thread 1...")
     global net
     global total_faces_detected_locally
     global CLASSES
@@ -141,12 +143,14 @@ def thread_for_capturing_face():
                     if direction < 0 and centroid[1] < W // 2:
                         totalUp += 1
                         totalPeople += 1
+                        total_faces_detected_locally += 1
                         # print(type(totalPeople))
                         to.counted = True
 
                     elif direction > 0 and centroid[1] > W // 2:
                         totalPeople -= 1
                         totalDown += 1
+                        total_faces_detected_locally -= 1
                         to.counted = True
 
             if totalPeople == 5:
@@ -183,28 +187,33 @@ def thread_for_capturing_face():
 
 
 def thread_for_zmq_for_receiving_face_detected_by_peer():
+    print("[INFO] Running Thread 2...")
     global total_faces_detected_by_peer
+    global total_faces_detected_locally
     global socket
     global run_program
     while run_program:
+        print("[INFO] Waiting to receive info...")
         #  Wait for next request from client
         message = socket.recv()
         print("Received request: %s" % message)
         total_faces_detected_by_peer = int(message)
-        message = socket.recv()
+        if total_faces_detected_by_peer != total_faces_detected_locally:
+            total_faces_detected_locally = total_faces_detected_by_peer
+        else:
+           pass
 
 
 def thread_for_zmq_for_transmitting_face_detected_locally():
+    print("[INFO] Running Thread 3...")
     global total_faces_detected_locally
     global socket
     global run_program
 
-    socket.send(b"Connected")
-    print("Message Sent!")
-
     curr_count = 0
     while run_program:
-        if total_faces_detected_locally > curr_count:
+        if total_faces_detected_locally >= curr_count:
+            print("[INFO] Sending Info...")
             #  Send the count
             socket.send(str(total_faces_detected_locally))
             curr_count = total_faces_detected_locally
