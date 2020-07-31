@@ -12,6 +12,8 @@ from pyimagesearch.trackableobject import TrackableObject
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
+socket.send(b"Connected")
+print("Message Sent!")
 
 total_faces_detected_locally = 0
 total_faces_detected_by_peer = 0
