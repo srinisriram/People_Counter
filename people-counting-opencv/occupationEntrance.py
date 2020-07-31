@@ -184,7 +184,7 @@ def thread_for_capturing_face():
 
 
 def thread_for_zmq_for_receiving_face_detected_by_peer():
-    global total_faces_detected_by_peer
+    global total_faces_detected_by_peer, global socket
     while run_program:
         #  Wait for next request from client
         message = socket.recv()
@@ -194,7 +194,7 @@ def thread_for_zmq_for_receiving_face_detected_by_peer():
 
 
 def thread_for_zmq_for_transmitting_face_detected_locally():
-    global total_faces_detected_locally
+    global total_faces_detected_locally, socket
     curr_count = 0
     while run_program:
         if total_faces_detected_locally > curr_count:
