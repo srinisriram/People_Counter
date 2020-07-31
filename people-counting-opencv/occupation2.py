@@ -208,7 +208,7 @@ def thread_for_zmq_for_transmitting_face_detected_locally():
 
 
 if __name__ == "__main__":
-    thread_for_capturing_face()
+    # thread_for_capturing_face()
     t1 = threading.Thread(target=thread_for_capturing_face)
     t2 = threading.Thread(target=thread_for_zmq_for_receiving_face_detected_by_peer)
     t3 = threading.Thread(target=thread_for_zmq_for_transmitting_face_detected_locally)
