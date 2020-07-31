@@ -13,6 +13,7 @@ context = zmq.Context()
 socket = context.socket(zmq.REP)
 print("[INFO] Binding...")
 socket.bind("tcp://*:5555")
+time.sleep(3)
 
 total_faces_detected_locally = 0
 total_faces_detected_by_peer = 0
@@ -210,6 +211,7 @@ def thread_for_zmq_for_transmitting_face_detected_locally():
     tx_socket = tx_context.socket(zmq.REQ)
     print("[INFO] Connecting ...")
     tx_socket.connect("tcp://192.168.6.158:5555")
+    time.sleep(3)
     curr_count = 0
     while run_program:
         if total_faces_detected_locally >= curr_count:
