@@ -194,14 +194,13 @@ def thread_for_zmq_for_receiving_face_detected_by_peer():
 
 def thread_for_zmq_for_transmitting_face_detected_locally():
     global total_faces_detected_locally
-    context = zmq.Context()
+    global socket, context
+    #  Socket to talk to server
+    print("Connecting to hello world server…")
+    socket.connect(peer_ip_address)
+    time.sleep(1)
+    curr_count = 0
     while run_program:
-        #  Socket to talk to server
-        print("Connecting to hello world server…")
-        socket = context.socket(zmq.REQ)
-        socket.connect(peer_ip_address)
-        time.sleep(1)
-        curr_count = 0
         if total_faces_detected_locally > curr_count:
             #  Send the count
             socket.send(str(total_faces_detected_locally))
@@ -210,23 +209,23 @@ def thread_for_zmq_for_transmitting_face_detected_locally():
 
 if __name__ == "__main__":
     thread_for_capturing_face()
-    # t1 = threading.Thread(target=thread_for_capturing_face)
-    # t2 = threading.Thread(target=thread_for_zmq_for_receiving_face_detected_by_peer)
-    # t3 = threading.Thread(target=thread_for_zmq_for_transmitting_face_detected_locally)
+    t1 = threading.Thread(target=thread_for_capturing_face)
+    t2 = threading.Thread(target=thread_for_zmq_for_receiving_face_detected_by_peer)
+    t3 = threading.Thread(target=thread_for_zmq_for_transmitting_face_detected_locally)
 
     # starting thread 1
-    # t1.start()
+    t1.start()
     # starting thread 2
-    # t2.start()
+    t2.start()
     # starting thread 3
-    # t3.start()
+    t3.start()
 
     # wait until thread 1 is completely executed
-    # t1.join()
+    t1.join()
     # wait until thread 2 is completely executed
-    # t2.join()
+    t2.join()
     # wait until thread 3 is completely executed
-    # t3.join()
+    t3.join()
 
     # both threads completely executed
     print("Done!")
