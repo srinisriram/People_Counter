@@ -14,6 +14,8 @@ peer_ip_address = "tcp://192.168.6.158:5555"
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.connect(peer_ip_address)
+socket.send(b"Connected")
+print("Message Sent!")
 
 total_faces_detected_locally = 0
 total_faces_detected_by_peer = 0
