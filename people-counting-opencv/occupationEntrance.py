@@ -215,7 +215,8 @@ def thread_for_zmq_for_transmitting_face_detected_locally():
         if total_faces_detected_locally >= curr_count:
             print("[INFO] Sending Info...")
             #  Send the count
-            socket.send_string(str(total_faces_detected_locally))
+            # socket.send_string(str(total_faces_detected_locally))
+            socket.send(b"Hello")
             curr_count = total_faces_detected_locally
 
 
