@@ -15,7 +15,6 @@ socket.bind("tcp://*:5555")
 
 total_faces_detected_locally = 0
 total_faces_detected_by_peer = 0
-peer_ip_address = "tcp://192.168.6.158:5555"
 run_program = True
 
 # load our serialized model from disk
@@ -183,7 +182,7 @@ def thread_for_capturing_face():
 
 
 def thread_for_zmq_for_receiving_face_detected_by_peer():
-    global total_faces_detected_by_peer
+    global total_faces_detected_by_peer, socket
     while run_program:
         #  Wait for next request from client
         message = socket.recv()
@@ -193,12 +192,7 @@ def thread_for_zmq_for_receiving_face_detected_by_peer():
 
 
 def thread_for_zmq_for_transmitting_face_detected_locally():
-    global total_faces_detected_locally
-    global socket, context
-    #  Socket to talk to server
-    print("Connecting to hello world server…")
-    socket.connect(peer_ip_address)
-    time.sleep(1)
+    global total_faces_detected_locally, socket
     curr_count = 0
     while run_program:
         if total_faces_detected_locally > curr_count:
