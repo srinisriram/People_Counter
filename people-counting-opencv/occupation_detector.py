@@ -198,13 +198,16 @@ def thread_for_zmq_for_receiving_face_detected_by_peer():
         message = socket.recv_string()
         print("Received request: %s" % message)
         total_faces_detected_by_peer = int(message)
+        print("[INFO] Sending Reply Message...")
+        socket.send(b"Received number")
+        
         
 def thread_for_zmq_for_transmitting_face_detected_locally():
     print("[INFO] Running Thread 3...")
     global total_faces_detected_locally
     global run_program
     tx_context = zmq.Context() 
-    tx_socket = tx_context.socket(zmq.DEALER)
+    tx_socket = tx_context.socket(zmq.REQ)
     print("[INFO] Connecting ...")
     tx_socket.connect("tcp://192.168.6.158:5555")
     curr_count = 0
