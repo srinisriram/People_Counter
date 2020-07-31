@@ -150,7 +150,7 @@ def thread_for_capturing_face():
                         to.counted = True
 
             if totalPeople == 5:
-                # print('Sorry you cannot enter.')
+                print('Sorry you cannot enter.')
             trackableObjects[objectID] = to
 
             text = "ID {}".format(objectID)
