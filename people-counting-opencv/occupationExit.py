@@ -9,6 +9,10 @@ from imutils.video import VideoStream, FPS
 from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
 
+context = zmq.Context()
+socket = context.socket(zmq.REP)
+socket.bind("tcp://*:5555")
+
 total_faces_detected_locally = 0
 total_faces_detected_by_peer = 0
 run_program = True
@@ -178,7 +182,9 @@ def thread_for_capturing_face():
 
 
 def thread_for_zmq_for_receiving_face_detected_by_peer():
-    global total_faces_detected_by_peer, socket, run_program
+    global total_faces_detected_by_peer
+    global socket
+    global run_program
     while run_program:
         #  Wait for next request from client
         message = socket.recv()
@@ -188,11 +194,10 @@ def thread_for_zmq_for_receiving_face_detected_by_peer():
 
 
 def thread_for_zmq_for_transmitting_face_detected_locally():
-    global total_faces_detected_locally, socket, run_program
+    global total_faces_detected_locally
+    global socket
+    global run_program
 
-    context = zmq.Context()
-    socket = context.socket(zmq.REP)
-    socket.bind("tcp://*:5555")
     socket.send(b"Connected")
     print("Message Sent!")
  
