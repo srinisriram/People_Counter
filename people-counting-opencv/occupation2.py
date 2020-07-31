@@ -141,7 +141,7 @@ def thread_for_capturing_face():
                     if direction < 0 and centroid[1] < W // 2:
                         totalUp += 1
                         totalPeople += 1
-                        print(type(totalPeople))
+                        # print(type(totalPeople))
                         to.counted = True
 
                     elif direction > 0 and centroid[1] > W // 2:
@@ -150,7 +150,7 @@ def thread_for_capturing_face():
                         to.counted = True
 
             if totalPeople == 5:
-                print('Sorry you cannot enter.')
+                # print('Sorry you cannot enter.')
             trackableObjects[objectID] = to
 
             text = "ID {}".format(objectID)
@@ -170,14 +170,14 @@ def thread_for_capturing_face():
             cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
-        print("{} people entered in today".format(totalPeople))
+        # print("{} people entered in today".format(totalPeople))
 
         totalFrames += 1
         fps.update()
 
         fps.stop()
-        print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
-        print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
+        # print("[INFO] elapsed time: {:.2f}".format(fps.elapsed()))
+        # print("[INFO] approx. FPS: {:.2f}".format(fps.fps()))
 
         cv2.destroyAllWindows()
 
