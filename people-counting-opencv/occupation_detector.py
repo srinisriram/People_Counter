@@ -78,7 +78,7 @@ def thread_for_capturing_face():
                         continue
                     box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
                     (startX, startY, endX, endY) = box.astype("int")
-                    cv2.rectangle(frame, (startX, startY), (endX, endY), COLORS[idx], 2)
+                    cv2.rectangle(frame, (startX, startY), (endX, endY), (0, 255, 0), 2)
                     tracker = dlib.correlation_tracker()
                     rect = dlib.rectangle(startX, startY, endX, endY)
                     tracker.start_track(rgb, rect)
