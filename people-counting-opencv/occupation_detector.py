@@ -25,21 +25,33 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
            "sofa", "train", "tvmonitor"]
 
+print("[INFO] starting video stream...")
+vs = cv2.VideoCapture(0)
+time.sleep(2.0)
+
+ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
+trackers = []
+trackableObjects = {}
+
+totalFrames = 0
+totalDown = 0
+totalUp = 0
+totalPeople = 0
 
 def thread_for_capturing_face():
     print("[INFO] Running Thread 1...")
-    print("[INFO] starting video stream...")
-    vs = cv2.VideoCapture(0)
-    time.sleep(2.0)
-
-    ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
-    trackers = []
-    trackableObjects = {}
-
-    totalFrames = 0
-    totalDown = 0
-    totalUp = 0
-    totalPeople = 0
+    globals()["net", "total_faces_detected_locally", "CLASSES", "vs", "ct", trackers, trackableObjects, totalFrames, totalDown, totalUp, totalPeople]
+    # global net
+    # global total_faces_detected_locally
+    # global CLASSES
+    # global vs
+    # global ct
+    # global trackers
+    # global trackableObjects
+    # global totalFrames
+    # global totalDown
+    # global totalUp
+    # global totalPeople
     while True:
         ret, frame = vs.read()
 
