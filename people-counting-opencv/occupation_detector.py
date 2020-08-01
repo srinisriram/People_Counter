@@ -174,6 +174,7 @@ def thread_for_receiving_face_detected_by_peer():
                 data = data.decode('utf-8')
                 total_faces_detected_by_peer = int(data)
                 total_faces_detected_locally = total_faces_detected_by_peer
+                print(total_faces_detected_locally)
                 print("total_faces_detected_by_peer = {}".format(total_faces_detected_by_peer))
             else:
                 print("server Thread2: data is Null")
