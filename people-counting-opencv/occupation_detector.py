@@ -199,7 +199,7 @@ def thread_for_transmitting_face_detected_locally():
     curr_count = 0
     while run_program:
         try:
-            if total_faces_detected_locally > curr_count:
+            if total_faces_detected_locally != curr_count:
                 print("Client Thread3: Sending total_faces_detected_locally={} to peer ip={}, port={}.".format(
                     total_faces_detected_locally,
                     *server_address))
