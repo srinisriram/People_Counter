@@ -62,22 +62,23 @@ def thread_for_capturing_face():
         status = "Waiting"
         rects = []
 
-        if totalFrames % 30 == 0:
+        if totalFrames % 10 == 0:
             status = "Detecting"
             trackers = []
 
             blob = cv2.dnn.blobFromImage(frame, 0.007843, (W, H), 127.5)
             net.setInput(blob)
             detections = net.forward()
- 
+
             for i in np.arange(0, detections.shape[2]):
                 confidence = detections[0, 0, i, 2]
-                if confidence > 0.4:
+                if confidence > 0.3:
                     idx = int(detections[0, 0, i, 1])
                     if CLASSES[idx] != "person":
                         continue
                     box = detections[0, 0, i, 3:7] * np.array([W, H, W, H])
                     (startX, startY, endX, endY) = box.astype("int")
+                    cv2.rectangle(frame, (startX, startY), (endX, endY), COLORS[idx], 2)
                     tracker = dlib.correlation_tracker()
                     rect = dlib.rectangle(startX, startY, endX, endY)
                     tracker.start_track(rgb, rect)
