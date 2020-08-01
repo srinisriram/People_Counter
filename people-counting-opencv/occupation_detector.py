@@ -131,6 +131,7 @@ def thread_for_capturing_face():
         info = [
             ("Up", totalUp),
             ("Down", totalDown),
+            ("Num Of people in the building: ", total_faces_detected_locally),
             ("Status", status),
         ]
 
