@@ -25,23 +25,21 @@ CLASSES = ["background", "aeroplane", "bicycle", "bird", "boat",
            "dog", "horse", "motorbike", "person", "pottedplant", "sheep",
            "sofa", "train", "tvmonitor"]
 
-print("[INFO] starting video stream...")
-vs = cv2.VideoCapture(0)
-time.sleep(2.0)
-
-ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
-trackers = []
-trackableObjects = {}
-
-totalFrames = 0
-totalDown = 0
-totalUp = 0
-totalPeople = 0
-
 
 def thread_for_capturing_face():
     print("[INFO] Running Thread 1...")
+    print("[INFO] starting video stream...")
+    vs = cv2.VideoCapture(0)
+    time.sleep(2.0)
 
+    ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
+    trackers = []
+    trackableObjects = {}
+
+    totalFrames = 0
+    totalDown = 0
+    totalUp = 0
+    totalPeople = 0
     while True:
         ret, frame = vs.read()
 
