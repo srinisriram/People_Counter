@@ -95,7 +95,7 @@ def thread_for_capturing_face():
                 endY = int(pos.bottom())
                 rects.append((startX, startY, endX, endY))
 
-        cv2.line(frame, (W // 2, 0), (H, W // 2), (0, 255, 255), 2)
+        cv2.line(frame, (W // 2, 0), (W // 2, H), (0, 255, 255), 2)
         objects = ct.update(rects)
 
         for (objectID, centroid) in objects.items():
@@ -104,6 +104,7 @@ def thread_for_capturing_face():
                 to = TrackableObject(objectID, centroid)
             else:
                 y = [c[1] for c in to.centroids]
+                x = [c[0] for c in to.centroids]
                 direction = centroid[0] - np.mean(x)
                 to.centroids.append(centroid)
                 if not to.counted:
