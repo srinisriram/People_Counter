@@ -45,7 +45,7 @@ def thread_for_capturing_face():
     while True:
         ret, frame = vs.read()
 
-        frame = cv2.resize(frame, width=500, interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         (H, W) = frame.shape[:2]
