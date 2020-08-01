@@ -72,7 +72,7 @@ def thread_for_capturing_face():
 
             for i in np.arange(0, detections.shape[2]):
                 confidence = detections[0, 0, i, 2]
-                if confidence >= 0.5:
+                if confidence > 0.5:
                     idx = int(detections[0, 0, i, 1])
                     if CLASSES[idx] != "person":
                         continue
@@ -202,7 +202,7 @@ def thread_for_transmitting_face_detected_locally():
 
     curr_count = 0
     while run_program:
-        print("[CURR_COUNT]", curr_count)
+        print("[CURR_COUNT]", curr_count, total_faces_detected_locally)
         try:
             if total_faces_detected_locally != curr_count:
                 print("Client Thread3: Sending total_faces_detected_locally={} to peer ip={}, port={}.".format(
