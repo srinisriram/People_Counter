@@ -8,7 +8,7 @@ from pyimagesearch.trackableobject import TrackableObject
 import socket
 import argparse
 
-total_faces_detected_locally = 2
+total_faces_detected_locally = 0
 total_faces_detected_by_peer = 0
 peer_ip_address = ""
 run_program = True
@@ -171,6 +171,7 @@ def thread_for_receiving_face_detected_by_peer():
                 print('Server Thread2: received {} from peer {}.'.format(data, client_address))
                 data = data.decode('utf-8')
                 total_faces_detected_by_peer = int(data)
+                total_faces_detected_locally = total_faces_detected_by_peer
                 print("total_faces_detected_by_peer = {}".format(total_faces_detected_by_peer))
             else:
                 print("server Thread2: data is Null")
