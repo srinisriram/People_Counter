@@ -40,18 +40,17 @@ totalPeople = 0
 
 def thread_for_capturing_face():
     print("[INFO] Running Thread 1...")
-    globals()["net", "total_faces_detected_locally", "CLASSES", "vs", "ct", "trackers", "trackableObjects", "totalFrames", "totalDown", "totalUp", "totalPeople"]
-    # global net
-    # global total_faces_detected_locally
-    # global CLASSES
-    # global vs
-    # global ct
-    # global trackers
-    # global trackableObjects
-    # global totalFrames
-    # global totalDown
-    # global totalUp
-    # global totalPeople
+    global net
+    global total_faces_detected_locally
+    global CLASSES
+    global vs
+    global ct
+    global trackers
+    global trackableObjects
+    global totalFrames
+    global totalDown
+    global totalUp
+    global totalPeople
     while True:
         ret, frame = vs.read()
 
