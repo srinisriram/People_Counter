@@ -211,7 +211,7 @@ def thread_for_zmq_for_transmitting_face_detected_locally():
     tx_context = zmq.Context() 
     tx_socket = tx_context.socket(zmq.REQ)
     print("[INFO] Connecting ...")
-    tx_socket.connect("tcp://192.168.6.158:5555")
+    tx_socket.connect("tcp://192.168.5.0:5555")
     time.sleep(3)
     curr_count = 0
     while run_program:

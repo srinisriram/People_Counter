@@ -4,19 +4,15 @@ import cv2
 import dlib
 import imutils
 import numpy as np
-import zmq
 from imutils.video import VideoStream, FPS
 from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
+import socket
+import argparse
 
-context = zmq.Context()
-socket = context.socket(zmq.REP)
-print("[INFO] Binding...")
-socket.bind("tcp://*:5555")
-time.sleep(3)
-
-total_faces_detected_locally = 0
+total_faces_detected_locally = 2
 total_faces_detected_by_peer = 0
+peer_ip_address = ""
 run_program = True
 
 # load our serialized model from disk
@@ -186,46 +182,82 @@ def thread_for_capturing_face():
         cv2.destroyAllWindows()
 
 
-def thread_for_zmq_for_receiving_face_detected_by_peer():
+def thread_for_receiving_face_detected_by_peer():
     print("[INFO] Running Thread 2...")
     global total_faces_detected_by_peer
     global total_faces_detected_locally
-    global socket
     global run_program
+    # Initialize a TCP server socket using SOCK_STREAM
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Bind the socket to the port
+    server_address = ('', 10000)
+    print('Server Thread2: starting up on {} port {}'.format(*server_address))
+    sock.bind(server_address)
+
+    # Listen for incoming connections
+    sock.listen(1)
+
     while run_program:
-        print("[INFO] Waiting to receive info...")
-        #  Wait for next request from client
-        # message = socket.recv(1024).decode()
-        message = socket.recv_string()
-        print("Received request: %s" % message)
-        total_faces_detected_by_peer = int(message)
-        print("[INFO] Sending Reply Message...")
-        socket.send(b"Received number")
-        
-        
-def thread_for_zmq_for_transmitting_face_detected_locally():
-    print("[INFO] Running Thread 3...")
+        # Wait for a connection
+        print('Server Thread2: Waiting for a connection')
+        connection, client_address = sock.accept()
+        try:
+            print('Server Thread2: connection from', client_address)
+            data = connection.recv(10)
+            if data:
+                print('Server Thread2: received {} from peer {}.'.format(data, client_address))
+                data = data.decode('utf-8')
+                total_faces_detected_by_peer = int(data)
+                print("total_faces_detected_by_peer = {}".format(total_faces_detected_by_peer))
+            else:
+                print("server Thread2: data is Null")
+        except:
+            # Clean up the connection
+            print('Server Thread2: closing server socket')
+            connection.close()
+
+def thread_for_transmitting_face_detected_locally():
+    print("Client [INFO] Running Thread 3...")
     global total_faces_detected_locally
     global run_program
-    tx_context = zmq.Context() 
-    tx_socket = tx_context.socket(zmq.REQ)
-    print("[INFO] Connecting ...")
-    tx_socket.connect("tcp://192.168.6.158:5555")
-    time.sleep(3)
+    # Create a TCP/IP socket
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    # Connect the socket to the port where the server is listening
+    server_address = (peer_ip_address, 10000)
+
+    successfully_connected_to_peer = False
+    while not successfully_connected_to_peer:
+        try:
+            print('Client Thread3: connecting to {} port {}'.format(*server_address))
+            sock.connect(server_address)
+            successfully_connected_to_peer = True
+        except ConnectionRefusedError:
+            time.sleep(5)
+
     curr_count = 0
     while run_program:
-        if total_faces_detected_locally >= curr_count:
-            print("[INFO] Sending Info...")
-            #  Send the count
-            tx_socket.send_string(str(total_faces_detected_locally))
-            curr_count = total_faces_detected_locally
+        try:
+            if total_faces_detected_locally > curr_count:
+                print("Client Thread3: Sending total_faces_detected_locally={} to peer ip={}, port={}.".format(
+                    total_faces_detected_locally,
+                    *server_address))
+                # Send the count
+                sock.sendall(str(total_faces_detected_locally).encode())
+                curr_count = total_faces_detected_locally
+        except:
+            print('Client Thread3: closing client socket')
+            sock.close()
 
 
 if __name__ == "__main__":
     # thread_for_capturing_face()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("peer_ip_address", type=str, help="Provide the IP address of the remote raspberry PI.")
+    args = parser.parse_args()
+    peer_ip_address = args.peer_ip_address
     t1 = threading.Thread(target=thread_for_capturing_face)
-    t2 = threading.Thread(target=thread_for_zmq_for_receiving_face_detected_by_peer)
-    t3 = threading.Thread(target=thread_for_zmq_for_transmitting_face_detected_locally)
+    t2 = threading.Thread(target=thread_for_receiving_face_detected_by_peer)
+    t3 = threading.Thread(target=thread_for_transmitting_face_detected_locally)
 
     # starting thread 1
     t1.start()
@@ -243,3 +275,4 @@ if __name__ == "__main__":
 
     # both threads completely executed
     print("Done!")
+
