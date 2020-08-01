@@ -94,7 +94,7 @@ def thread_for_capturing_face():
                 endY = int(pos.bottom())
                 rects.append((startX, startY, endX, endY))
 
-        cv2.line(frame, (0, W // 2), (H, W // 2), (0, 255, 255), 2)
+        cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
         objects = ct.update(rects)
 
         for (objectID, centroid) in objects.items():
