@@ -202,7 +202,7 @@ def thread_for_transmitting_face_detected_locally():
                         total_faces_detected_locally,
                         *server_address))
                     s.sendall(str(total_faces_detected_locally).encode())
-                    #curr_count = total_faces_detected_locally
+                    curr_count = total_faces_detected_locally
                     time.sleep(1)
             except:
                 print('Client Thread3: Exception: closing client socket')
