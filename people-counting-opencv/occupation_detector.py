@@ -112,17 +112,15 @@ def thread_for_capturing_face():
                     if direction < 0 and centroid[0] < H // 2:
                         totalUp += 1
                         totalPeople += 1
-                        total_faces_detected_locally += 1
+                        total_faces_detected_locally -= 1
                         # print(type(totalPeople))
                         to.counted = True
                     elif direction > 0 and centroid[0] > H // 2:
                         totalPeople -= 1
                         totalDown += 1
-                        total_faces_detected_locally -= 1
+                        total_faces_detected_locally += 1
                         to.counted = True
 
-            if totalPeople == 5:
-                print('Sorry you cannot enter.')
             trackableObjects[objectID] = to
             text = "ID {}".format(objectID)
             cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
@@ -137,10 +135,10 @@ def thread_for_capturing_face():
             ("Status", status),
         ]
 
-        for (i, (k, v)) in enumerate(info):
-            text = "{}: {}".format(k, v)
-            cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+        #for (i, (k, v)) in enumerate(info):
+            #text = "{}: {}".format(k, v)
+            #cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
+                        #cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
         # print("{} people entered in today".format(totalPeople))
 
         totalFrames += 1
@@ -198,13 +196,13 @@ def thread_for_transmitting_face_detected_locally():
                 time.sleep(5)
         while run_program:
             try:
-                if total_faces_detected_locally > curr_count:
+                if total_faces_detected_locally != curr_count:
                     # Send the count
                     print("Client Thread3: Sending total_faces_detected_locally={} to peer ip={}, port={}.".format(
                         total_faces_detected_locally,
                         *server_address))
                     s.sendall(str(total_faces_detected_locally).encode())
-                    curr_count = total_faces_detected_locally
+                    #curr_count = total_faces_detected_locally
                     time.sleep(1)
             except:
                 print('Client Thread3: Exception: closing client socket')
@@ -226,10 +224,12 @@ def thread_for_comparing_local_face_detected_and_global_face_detected():
     global max_occupancy
     global run_program
     while run_program:
-        if abs(total_faces_detected_locally - total_faces_detected_by_peer) >= max_occupancy:
-            print("Please wait because the occupancy is greater than {}".format(max_occupancy))
-            # Play an audio message.
-            time.sleep(1)
+        if total_faces_detected_by_peer != total_faces_detected_locally:
+            total_faces_detected_by_peer = total_faces_detected_locally
+            if abs(total_faces_detected_by_peer) >=  max_occupancy:
+                print("Please wait because the occupancy is greater than {}".format(max_occupancy))
+                # Play an audio message.
+                time.sleep(1)
 
 
 if __name__ == "__main__":
@@ -263,8 +263,9 @@ if __name__ == "__main__":
     t3.join()
     # wait until thread 4 is completely executed
     t4.join()
-    
+
     if args.debug:
         t5.join()
     # both threads completely executed
     print("Done!")
+
