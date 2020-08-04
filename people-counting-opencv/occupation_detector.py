@@ -238,9 +238,12 @@ def thread_for_comparing_local_face_detected_and_global_face_detected():
     global run_program
     while run_program:
         total_faces_detected = total_faces_detected_locally + total_faces_detected_by_peer
+<<<<<<< HEAD
         print("[INFO D 1]: ", total_faces_detected)
         print("[INFO L 2]: ", total_faces_detected_locally)
         print("[INFO P 3]: ", total_faces_detected_by_peer)
+=======
+>>>>>>> ffbeef4dfab57bdd4232346bfd7b3e25ed8fcdfb
         print("Thead4: Compute total faces detected by both cameras: {}".format(total_faces_detected))
         if total_faces_detected  >  max_occupancy:
             print("Please wait because the occupancy is greater than {}".format(max_occupancy))
