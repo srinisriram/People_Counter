@@ -66,7 +66,7 @@ def thread_for_capturing_face():
         status = "Waiting"
         rects = []
 
-        if totalFrames % 10 == 0:
+        if totalFrames % 30 == 0:
             status = "Detecting"
             trackers = []
 
@@ -99,8 +99,7 @@ def thread_for_capturing_face():
                 endY = int(pos.bottom())
                 rects.append((startX, startY, endX, endY))
 
-        cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
-
+        cv2.line(frame, (W // 2, 0), (W // 2, H), (0, 255, 255), 2)
         objects = ct.update(rects)
 
         for (objectID, centroid) in objects.items():
@@ -116,18 +115,17 @@ def thread_for_capturing_face():
                 centroid_list.append(centroid[0])
                 to.centroids.append(centroid)
                 if not to.counted:
-                    """
                     final_centroid = centroid_list[-1]
                     beginning_centroid = centroid_list[0]
-                    if final_centroid < H // 2:
-                        #print("[SRINI]: ", len(centroid_list))
-                        #print("[MILAN]: ", (final_centroid - beginning_centroid))
+                    if final_centroid < W // 2:
+                        print("[SRINI]: ", len(centroid_list))
+                        print("[MILAN]: ", (final_centroid - beginning_centroid))
                         if len(centroid_list) > 100 and final_centroid != beginning_centroid:
                             total_faces_detected_locally += 1
-                            #print("[SRINI]: Number of people in =", total_faces_detected_locally)
+                            print("[SRINI]: Number of people in =", total_faces_detected_locally)
                             to.counted = True
                             centroid_list.clear()
-                    elif final_centroid > H // 2:
+                    elif final_centroid > W // 2:
                         if len(centroid_list) > 100 and final_centroid != beginning_centroid:
                             total_faces_detected_locally -= 1
                             print("[SRINI]: Number of people in =", total_faces_detected_locally)
@@ -135,16 +133,18 @@ def thread_for_capturing_face():
                             centroid_list.clear()
 
                     """
-                    if centroid[0] < H // 2:
+                    if centroid[0] < W // 2:
                         totalUp += 1
                         totalPeople += 1
-                        total_faces_detected_locally += 1
+                        total_faces_detected_locally -= 1
+                        # print(type(totalPeople))
                         to.counted = True
-                    elif centroid[0] > H // 2:
+                    elif centroid[0] > W // 2:
                         totalPeople -= 1
                         totalDown += 1
-                        total_faces_detected_locally -= 1
+                        total_faces_detected_locally += 1
                         to.counted = True
+                    """
 
             trackableObjects[objectID] = to
             text = "ID {}".format(objectID)
@@ -238,9 +238,6 @@ def thread_for_comparing_local_face_detected_and_global_face_detected():
     global run_program
     while run_program:
         total_faces_detected = total_faces_detected_locally + total_faces_detected_by_peer
-        print("[INFO D 1]: ", total_faces_detected)
-        print("[INFO L 2]: ", total_faces_detected_locally)
-        print("[INFO P 3]: ", total_faces_detected_by_peer)
         print("Thead4: Compute total faces detected by both cameras: {}".format(total_faces_detected))
         if total_faces_detected  >  max_occupancy:
             print("Please wait because the occupancy is greater than {}".format(max_occupancy))
