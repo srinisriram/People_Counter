@@ -112,7 +112,7 @@ def thread_for_capturing_face():
                 #x = [c[0] for c in to.centroids]
                 #direction = centroid[0] - np.mean(x)
                 #print("Direction of person:", direction)
-                print("Current Centroid {} vs. Middle {}".format(centroid[0], W //2))
+                print("Current Centroids 1: {} 2: {} vs. Middle {}".format(centroid[0], centroid[1], W //2))
                 centroid_list.append(centroid[0])
                 to.centroids.append(centroid)
                 if not to.counted:
@@ -135,12 +135,12 @@ def thread_for_capturing_face():
                             centroid_list.clear()
 
                     """
-                    if centroid[0] < H // 2:
+                    if centroid[1] < W // 2:
                         totalUp += 1
                         totalPeople += 1
                         total_faces_detected_locally += 1
                         to.counted = True
-                    elif centroid[0] > H // 2:
+                    elif centroid[1] > W // 2:
                         totalPeople -= 1
                         totalDown += 1
                         total_faces_detected_locally -= 1
@@ -238,12 +238,9 @@ def thread_for_comparing_local_face_detected_and_global_face_detected():
     global run_program
     while run_program:
         total_faces_detected = total_faces_detected_locally + total_faces_detected_by_peer
-<<<<<<< HEAD
         print("[INFO D 1]: ", total_faces_detected)
         print("[INFO L 2]: ", total_faces_detected_locally)
         print("[INFO P 3]: ", total_faces_detected_by_peer)
-=======
->>>>>>> ffbeef4dfab57bdd4232346bfd7b3e25ed8fcdfb
         print("Thead4: Compute total faces detected by both cameras: {}".format(total_faces_detected))
         if total_faces_detected  >  max_occupancy:
             print("Please wait because the occupancy is greater than {}".format(max_occupancy))
