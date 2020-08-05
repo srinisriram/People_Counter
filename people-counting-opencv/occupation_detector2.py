@@ -40,6 +40,8 @@ totalDown = 0
 totalUp = 0
 totalPeople = 0
 
+moveDict = {}
+
 def thread_for_capturing_face():
     print("[INFO] Running Thread 1...")
     global net
@@ -104,6 +106,13 @@ def thread_for_capturing_face():
         objects = ct.update(rects)
 
         for (objectID, centroid) in objects.items():
+            if objectID in moveDict:
+                values = moveDict[objectID]
+                values.append(centroid[1])
+                moveDict[objectID] = values
+            else:
+                moveDict[objectID] = []
+            print("[MOVE DICTIONARY]: ", moveDict)
             to = trackableObjects.get(objectID, None)
             if to is None:
                 to = TrackableObject(objectID, centroid)
@@ -112,7 +121,7 @@ def thread_for_capturing_face():
                 #x = [c[0] for c in to.centroids]
                 #direction = centroid[0] - np.mean(x)
                 #print("Direction of person:", direction)
-                print("Current Centroids 1: {} 2: {} vs. Middle {}".format(centroid[0], centroid[1], W //2))
+                #print("Current Centroids 1: {} 2: {} vs. Middle {}".format(centroid[0], centroid[1], W //2))
                 centroid_list.append(centroid[0])
                 to.centroids.append(centroid)
                 if not to.counted:
@@ -135,24 +144,35 @@ def thread_for_capturing_face():
                             centroid_list.clear()
 
                     """
-                    if centroid[1] < W // 2:
-                        totalUp += 1
-                        totalPeople += 1
-                        total_faces_detected_locally -= 1
-                        to.counted = True
-                    elif centroid[1] > W // 2:
-                        totalPeople -= 1
-                        totalDown += 1
-                        total_faces_detected_locally += 1
-                        to.counted = True
+                    print("CENTROID 1: ", centroid[1])
+                    for keyName in moveDict:
+                        keyVals = moveDict[keyName]
+                        # for i in range(len(keyVals)):
+                            # keyVals[i] = keyVals[i].item()
+                        if "Counted" in keyVals:
+                            pass
+                        elif (keyVals[0] < W // 2) and (keyVals[-1] > W // 2):
+               	            totalUp += 1
+                            totalPeople += 1
+                            total_faces_detected_locally -=1
+                            values = moveDict[keyName]
+                            values.append("Counted")
+                            moveDict[keyName] = values
+                            to.counted = True
+                        elif (keyVals[0] > W // 2) and (keyVals[-1] < W // 2):
+                            totalPeople -= 1
+                            totalDown += 1
+                            total_faces_detected_locally += 1
+                            values = moveDict[keyName]
+                            values.append("Counted")
+                            moveDict[keyName] = values
+                            to.counted = True
 
             trackableObjects[objectID] = to
             text = "ID {}".format(objectID)
             cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
-
-
 
         totalFrames += 1
         cv2.imshow("Frame", frame)
