@@ -7,12 +7,15 @@ from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
 import socket
 import argparse
-import simpleaudio as sa
+import smtplib
+import ssl
+from email.mime.text import MIMEText
+from datetime import datetime
 
 total_faces_detected_locally = 0
 total_faces_detected_by_peer = 0
 peer_ip_address = ""
-max_occupancy = 2
+max_occupancy = 100
 run_program = True
 
 # load our serialized model from disk
@@ -34,18 +37,18 @@ time.sleep(2.0)
 ct = CentroidTracker(maxDisappeared=40, maxDistance=50)
 trackers = []
 trackableObjects = {}
-centroid_list = []
 
 totalFrames = 0
 totalDown = 0
 totalUp = 0
 totalPeople = 0
 
-moveDict = {}
 
-filename = 'speech.wav'
-wave_obj = sa.WaveObject.from_wave_file(filename)
-arr = []
+now = datetime.now().time()
+print("now =", now)
+hr = now.hour
+min = now.minute
+
 
 def thread_for_capturing_face():
     print("[INFO] Running Thread 1...")
@@ -60,12 +63,12 @@ def thread_for_capturing_face():
     global totalDown
     global totalUp
     global totalPeople
-    global centroid_list
-    while True:
+    global run_program
+
+    while run_program:
         ret, frame = vs.read()
 
-        #frame = frame 
-        frame = cv2.resize(frame, (240, 240), interpolation=cv2.INTER_AREA)
+        frame = cv2.resize(frame, (640, 480), interpolation=cv2.INTER_AREA)
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
         (H, W) = frame.shape[:2]
@@ -106,78 +109,52 @@ def thread_for_capturing_face():
                 endY = int(pos.bottom())
                 rects.append((startX, startY, endX, endY))
 
-        cv2.line(frame, (0, H // 2), (W, H // 2), (0, 255, 255), 2)
-
+        cv2.line(frame, (W // 2, 0), (W // 2, H), (0, 255, 255), 2)
         objects = ct.update(rects)
 
         for (objectID, centroid) in objects.items():
-            if objectID in moveDict:
-                values = moveDict[objectID]
-                values.append(centroid[1])
-                moveDict[objectID] = values
-            else:
-                moveDict[objectID] = [centroid[1]]
-            #print("[MOVE DICTIONARY]: ", moveDict)
             to = trackableObjects.get(objectID, None)
             if to is None:
                 to = TrackableObject(objectID, centroid)
             else:
-                #y = [c[1] for c in to.centroids]
-                #x = [c[0] for c in to.centroids]
-                #direction = centroid[0] - np.mean(x)
-                #print("Direction of person:", direction)
-                #print("Current Centroids 1: {} 2: {} vs. Middle {}".format(centroid[0], centroid[1], W //2))
-                centroid_list.append(centroid[0])
+                y = [c[1] for c in to.centroids]
+                x = [c[0] for c in to.centroids]
+                direction = centroid[0] - np.mean(x)
+                print("Direction of person:", direction)
+                print("Current Centroid {} vs. Middle {}".format(centroid[0], H //2))
                 to.centroids.append(centroid)
                 if not to.counted:
-                    """
-                    final_centroid = centroid_list[-1]
-                    beginning_centroid = centroid_list[0]
-                    if final_centroid < H // 2:
-                        #print("[SRINI]: ", len(centroid_list))
-                        #print("[MILAN]: ", (final_centroid - beginning_centroid))
-                        if len(centroid_list) > 100 and final_centroid != beginning_centroid:
-                            total_faces_detected_locally += 1
-                            #print("[SRINI]: Number of people in =", total_faces_detected_locally)
-                            to.counted = True
-                            centroid_list.clear()
-                    elif final_centroid > H // 2:
-                        if len(centroid_list) > 100 and final_centroid != beginning_centroid:
-                            total_faces_detected_locally -= 1
-                            print("[SRINI]: Number of people in =", total_faces_detected_locally)
-                            to.counted = True
-                            centroid_list.clear()
-
-                    """
-                    print("CENTROID 1: ", centroid[1])
-                    for keyName in moveDict:
-                        keyVals = moveDict[keyName]
-                        # for i in range(len(keyVals)):
-                            # keyVals[i] = keyVals[i].item()
-                        if "Counted" in keyVals:
-                            pass
-                        elif (keyVals[0] < W // 2) and (keyVals[-1] > W // 2):
-               	            totalUp += 1
-                            totalPeople += 1
-                            total_faces_detected_locally -=1
-                            values = moveDict[keyName]
-                            values.append("Counted")
-                            moveDict[keyName] = values
-                            to.counted = True
-                        elif (keyVals[0] > W // 2) and (keyVals[-1] < W // 2):
-                            totalPeople -= 1
-                            totalDown += 1
-                            total_faces_detected_locally += 1
-                            values = moveDict[keyName]
-                            values.append("Counted")
-                            moveDict[keyName] = values
-                            to.counted = True
+                    if direction < 0 and centroid[0] < H // 2:
+                        totalUp += 1
+                        totalPeople += 1
+                        total_faces_detected_locally -= 1
+                        # print(type(totalPeople))
+                        to.counted = True
+                    elif direction > 0 and centroid[0] > H // 2:
+                        totalPeople -= 1
+                        totalDown += 1
+                        total_faces_detected_locally += 1
+                        to.counted = True
 
             trackableObjects[objectID] = to
             text = "ID {}".format(objectID)
             cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
             cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 255, 0), -1)
+
+
+        info = [
+            ("Up", totalUp),
+            ("Down", totalDown),
+            ("Num Of people in the building: ", total_faces_detected_locally),
+            ("Status", status),
+        ]
+
+        #for (i, (k, v)) in enumerate(info):
+            #text = "{}: {}".format(k, v)
+            #cv2.putText(frame, text, (10, H - ((i * 20) + 20)),
+                        #cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+        # print("{} people entered in today".format(totalPeople))
 
         totalFrames += 1
         cv2.imshow("Frame", frame)
@@ -263,15 +240,42 @@ def thread_for_comparing_local_face_detected_and_global_face_detected():
     global run_program
     while run_program:
         total_faces_detected = total_faces_detected_locally + total_faces_detected_by_peer
-        print("[INFO D 1]: ", total_faces_detected)
-        print("[INFO L 2]: ", total_faces_detected_locally)
-        print("[INFO P 3]: ", total_faces_detected_by_peer)
         print("Thead4: Compute total faces detected by both cameras: {}".format(total_faces_detected))
         if total_faces_detected  >  max_occupancy:
             print("Please wait because the occupancy is greater than {}".format(max_occupancy))
-            play_obj = wave_obj.play()
-            play_obj.wait_done()
+            # Play an audio message.
         time.sleep(5)
+
+def thread_for_sending_email():
+    global total_faces_detected_by_peer
+    global total_faces_detected_locally
+    global run_program
+
+
+    GMAIL_USERNAME = 'maskdetector101@gmail.com'
+    GMAIL_PASSWORD = 'LearnIOT06!'
+
+    to = 'srinivassriram06@gmail.com'
+    msg = str(total_faces_detected_locally + total_faces_detected_by_peer)
+
+    context = ssl.create_default_context() # Try with a context
+    smptserver = smtplib.SMTP("smtp.gmail.com",587) 
+    smptserver.ehlo()
+    smptserver.starttls(context=context)
+    smptserver.ehlo
+    smptserver.login(GMAIL_USERNAME, GMAIL_PASSWORD)
+
+
+    while run_program:
+        msg = str(total_faces_detected_locally + total_faces_detected_by_peer)
+
+        now = datetime.now().time()
+        hr = now.hour
+        min = now.minute
+
+        if min == 5:
+            for x in range(1):
+                smptserver.sendmail(GMAIL_USERNAME, to, msg)
 
 
 if __name__ == "__main__":
@@ -279,12 +283,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("-p", "--peer_ip_address", type=str, help="Provide the IP address of the remote raspberry PI.")
     parser.add_argument("-d", "--debug", type=bool, required=False, default=False, help="debug the application at run time by incrementing the total_faces_detected_locally.")
+    parser.add_argument("-e","--email", type=bool, required=False, default=False, help="send email every hour containing the number of people that entered so far")
     args = parser.parse_args()
     peer_ip_address = args.peer_ip_address
+
     t1 = threading.Thread(target=thread_for_capturing_face)
     t2 = threading.Thread(target=thread_for_receiving_face_detected_by_peer)
     t3 = threading.Thread(target=thread_for_transmitting_face_detected_locally)
     t4 = threading.Thread(target=thread_for_comparing_local_face_detected_and_global_face_detected)
+
     # starting thread 1
     t1.start()
     # starting thread 2
@@ -297,6 +304,12 @@ if __name__ == "__main__":
     if args.debug:
         t5 = threading.Thread(target=thread_for_debug)
         t5.start()
+    if args.email:
+        t6 = threading.Thread(target=thread_for_sending_email)
+        # starting thread 6
+        t6.start()
+
+
     # wait until thread 1 is completely executed
     t1.join()
     # wait until thread 2 is completely executed
@@ -306,8 +319,12 @@ if __name__ == "__main__":
     # wait until thread 4 is completely executed
     t4.join()
 
+
     if args.debug:
         t5.join()
+    if args.email:
+        t6.join()
+
     # both threads completely executed
     print("Done!")
 

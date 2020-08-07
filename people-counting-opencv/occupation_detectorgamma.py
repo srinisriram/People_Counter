@@ -7,12 +7,11 @@ from pyimagesearch.centroidtracker import CentroidTracker
 from pyimagesearch.trackableobject import TrackableObject
 import socket
 import argparse
-import simpleaudio as sa
 
 total_faces_detected_locally = 0
 total_faces_detected_by_peer = 0
 peer_ip_address = ""
-max_occupancy = 2
+max_occupancy = 100
 run_program = True
 
 # load our serialized model from disk
@@ -42,10 +41,6 @@ totalUp = 0
 totalPeople = 0
 
 moveDict = {}
-
-filename = 'speech.wav'
-wave_obj = sa.WaveObject.from_wave_file(filename)
-arr = []
 
 def thread_for_capturing_face():
     print("[INFO] Running Thread 1...")
@@ -116,7 +111,7 @@ def thread_for_capturing_face():
                 values.append(centroid[1])
                 moveDict[objectID] = values
             else:
-                moveDict[objectID] = [centroid[1]]
+                moveDict[objectID] = []
             #print("[MOVE DICTIONARY]: ", moveDict)
             to = trackableObjects.get(objectID, None)
             if to is None:
@@ -149,7 +144,7 @@ def thread_for_capturing_face():
                             centroid_list.clear()
 
                     """
-                    print("CENTROID 1: ", centroid[1])
+                    #print("CENTROID 1: ", centroid[1])
                     for keyName in moveDict:
                         keyVals = moveDict[keyName]
                         # for i in range(len(keyVals)):
@@ -269,8 +264,7 @@ def thread_for_comparing_local_face_detected_and_global_face_detected():
         print("Thead4: Compute total faces detected by both cameras: {}".format(total_faces_detected))
         if total_faces_detected  >  max_occupancy:
             print("Please wait because the occupancy is greater than {}".format(max_occupancy))
-            play_obj = wave_obj.play()
-            play_obj.wait_done()
+            # Play an audio message.
         time.sleep(5)
 
 
